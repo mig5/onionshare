@@ -22,7 +22,7 @@ from stem.control import Controller
 from stem import ProtocolError, SocketClosed
 from stem.connection import MissingPassword, UnreadableCookieFile, AuthenticationFailure
 from Crypto.PublicKey import RSA
-import base64, os, sys, tempfile, shutil, urllib, platform, subprocess, time, shlex
+import base64, os, sys, tempfile, shutil, urllib, platform, subprocess, time, shlex, psutil
 
 from distutils.version import LooseVersion as Version
 from . import common, strings
@@ -322,7 +322,12 @@ class Onion(object):
                     f.write(self.settings.get("tor_bridges_use_custom_bridges"))
                     f.write("\nUseBridges 1")
 
-            # Execute a tor subprocess
+            # Execute a tor subprocess if none already running (if we find one, kill it)
+            for process in psutil.process_iter():
+                if process.name() == 'tor' and self.tor_torrc in process.cmdline():
+                    self.common.log("Onion", "connect", f"Found a state OnionShare tor process with pid {process.pid}, killing it")
+                    process.kill()
+
             start_ts = time.time()
             if self.common.platform == "Windows":
                 # In Windows, hide console window when opening tor.exe subprocess
