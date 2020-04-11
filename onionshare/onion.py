@@ -324,7 +324,7 @@ class Onion(object):
 
             # Execute a tor subprocess if none already running (if we find one, kill it)
             for process in psutil.process_iter():
-                if process.name() == 'tor' and self.tor_torrc in process.cmdline():
+                if 'tor' in process.name() and self.tor_torrc in process.cmdline():
                     self.common.log("Onion", "connect", f"Found a state OnionShare tor process with pid {process.pid}, killing it")
                     process.kill()
 
